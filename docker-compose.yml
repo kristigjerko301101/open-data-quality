@@ -48,6 +48,7 @@ services:
     build:
       context: ./script
     environment:
+      PYTHONUNBUFFERED: 1
       DB_USER: postgres
       DB_PASSWORD: open-data-quality
       DB_HOST: db

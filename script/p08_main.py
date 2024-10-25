@@ -15,7 +15,7 @@ pause_duration = float(os.getenv("SCRIPT_PAUSE_DURATION_MINUTES"))  # in minutes
 
 
 def scraping_job(duration):
-    print(" scraping job  start:", datetime.now())
+    print(datetime.now(), "scraping start")
     db, cursor = db_open()
     execid = str(uuid4())
 
@@ -31,11 +31,11 @@ def scraping_job(duration):
         )
 
     db_close(db, cursor)
-    print(" scraping job finish:", datetime.now())
+    print(datetime.now(), "scraping finish")
 
 
 def quality_job(duration):
-    print("  quality job  start:", datetime.now())
+    print(datetime.now(), "quality start")
     db, cursor = db_open()
     execid = str(uuid4())
 
@@ -51,16 +51,16 @@ def quality_job(duration):
         )
 
     db_close(db, cursor)
-    print("  quality job finish:", datetime.now())
+    print(datetime.now(), "quality finish")
 
 
 current_time = datetime.now().time()
 while True:
     current_time = datetime.now().time()
     if start_time <= current_time <= end_time:
-        print(" starting job schedl:", datetime.now())
+        print(datetime.now(), "schedule start")
         scraping_job(scraping_duration)
         quality_job(quality_duration)
     else:
-        print("  pausing job schedl:", datetime.now())
+        print(datetime.now(), "schedule pause")
         time.sleep(pause_duration * 60)  # in seconds

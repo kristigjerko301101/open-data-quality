@@ -4,7 +4,7 @@ from p02_scraping_db import *
 import time
 import random
 
-DEBUG = False
+DEBUG = True
 
 
 def scrape(db, cursor, execid, duration):
@@ -35,12 +35,12 @@ def scrape(db, cursor, execid, duration):
         ):  # for every dataset in the list from the api
 
             if time.time() - start_time > duration * 60:
-                print("scraping - time up")
+                print(datetime.now(), "scraping timeup")
                 break
 
             # follow progress in debug mode
-            if DEBUG and (i == 0 or (i + 1) % 100 == 0):
-                print(i + 1, datetime.now())
+            if DEBUG and (i == 0 or (i + 1) % 10 == 0):
+                print(datetime.now(), i + 1)
 
             # get the dataset and its resources from the api
             api_dataset, api_resources = api_get_dataset(id)

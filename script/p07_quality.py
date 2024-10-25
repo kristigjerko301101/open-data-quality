@@ -5,7 +5,7 @@ from datetime import datetime
 import time
 import random
 
-DEBUG = False
+DEBUG = True
 
 
 def quality(db, cursor, execid, duration):
@@ -28,13 +28,13 @@ def quality(db, cursor, execid, duration):
     try:
         start_time = time.time()
         for i, csv in enumerate(csv_resources):
-            if time.time() - start_time > duration*60:
-                print("quality - time up")
+            if time.time() - start_time > duration * 60:
+                print(datetime.now(), "quality timeup")
                 break
 
             # follow progress in debug mode
             if DEBUG and (i == 0 or (i + 1) % 10 == 0):
-                print(i + 1, datetime.now(), n_error, n_type_error)
+                print(datetime.now(), i + 1, n_ok, n_error, n_type_error)
 
             id, url, num_available, num_accesses = csv[0], csv[5], csv[9], csv[10]
 
