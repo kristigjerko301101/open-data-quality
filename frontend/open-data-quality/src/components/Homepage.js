@@ -13,73 +13,17 @@ const StatCard = ({ title, stat }) => {
   );
 };
 
-const ScoreGauge = ({ name, value, descr }) => {
-  const getOption = () => ({
-    tooltip: {
-      trigger: "item",
-      triggerOn: "mousemove",
-      formatter: descr,
-      textStyle: {
-        fontSize: 14,
-      },
-    },
-    series: [
-      {
-        name: "Quality",
-        type: "gauge",
-        min: 0,
-        max: 1,
-        radius: "95%",
-        center: ["50%", "50%"],
-        pointer: {
-          width: 5,
-          itemStyle: {
-            color: "#0066cc",
-          },
-        },
-        progress: {
-          show: true,
-          width: 15,
-          itemStyle: {
-            color: "#0066cc",
-          },
-        },
-        axisLabel: {
-          fontSize: 8,
-        },
-        title: {
-          fontSize: 12,
-          fontWeight: "bold",
-          offsetCenter: [0, "50%"],
-        },
-        detail: {
-          valueAnimation: true,
-          formatter: (val) => val.toFixed(3).replace(".", ","),
-          fontSize: 14,
-          offsetCenter: [0, "70%"],
-        },
-        data: [
-          {
-            value: value,
-            name: name,
-          },
-        ],
-      },
-    ],
-  });
-
-  return (
-    <ReactECharts
-      option={getOption()}
-      style={{ height: "25vh", width: "20vw" }}
-    />
-  );
-};
-
 const ProgressLine = ({ title, xAxis, series }) => {
   const getOption = () => ({
     title: {
       text: title,
+      left: "center",
+      top: "top",
+      textStyle: {
+        fontSize: 18,
+        //fontWeight: "bold",
+        color: "#333",
+      },
     },
     tooltip: {
       trigger: "axis",
@@ -91,12 +35,8 @@ const ProgressLine = ({ title, xAxis, series }) => {
       left: "3%",
       right: "4%",
       bottom: "3%",
+      top: "15%",
       containLabel: true,
-    },
-    toolbox: {
-      feature: {
-        saveAsImage: {},
-      },
     },
     xAxis: {
       type: "category",
@@ -131,6 +71,160 @@ const ProgressLine = ({ title, xAxis, series }) => {
   );
 };
 
+const ScoreBars = ({ title, data }) => {
+  const headerRow = ["measure", "title", "descr", "score", "amount"];
+  const measuresObject = data;
+  const sourceData = measuresObject.map((obj) => Object.values(obj));
+  sourceData.unshift(headerRow);
+
+  const getOption = () => ({
+    title: {
+      text: title,
+      left: "center",
+      top: "top",
+      textStyle: {
+        fontSize: 20,
+        fontWeight: "bold",
+        color: "#333",
+      },
+    },
+    grid: {
+      containLabel: true,
+      left: "2%", // Reduce left space
+      right: "4%", // Reduce right space
+      top: "10%", // Adjust top space if needed
+      bottom: "15%", // Adjust bottom space if needed
+    },
+    tooltip: {
+      trigger: "item", // Trigger on the item (bar)
+      formatter: function (params) {
+        const measure = params.data[1]; // title
+        const descr = params.data[2]; // descr
+        const score = params.data[3]; // score
+        return `
+          <strong>${measure}</strong><br/>
+          <strong>Score:</strong> ${score}<br/>
+          <strong>Descr:</strong> ${descr.replace("#", "<br/>")}
+        `;
+      },
+      axisPointer: {
+        type: "shadow", // Display a shadow pointer
+      },
+    },
+    dataset: {
+      source: sourceData,
+    },
+    xAxis: { name: "" },
+    yAxis: { type: "category", inverse: "true" },
+    series: [
+      {
+        type: "bar",
+        encode: {
+          x: "amount",
+          y: "measure",
+        },
+      },
+    ],
+    visualMap: {
+      orient: "horizontal",
+      left: "center",
+      min: 0,
+      max: 1,
+      text: ["1", "0"],
+      dimension: 3, //score
+      inRange: {
+        color: ["#FD665F", "#FFCE34", "#65B581"],
+      },
+      formatter: (value) => {
+        return value.toFixed(3);
+      },
+    },
+  });
+
+  return (
+    <ReactECharts
+      option={getOption()}
+      style={{ height: "50vh", width: "40vw" }}
+    />
+  );
+};
+
+const StackedLines = ({ title, data }) => {
+  const legendData =
+    data[0] && Object.keys(data[0]).filter((i) => i !== "refdate");
+  const xAxisData = data.map((item) => item.refdate);
+
+  // Initialize an object to hold the values for each key
+  const seriesMap = {};
+  // Iterate through each object in the input array
+  data.forEach((obj) => {
+    for (const key of legendData) {
+      if (!seriesMap[key]) {
+        // If the key doesn't exist in the seriesMap, create it
+        seriesMap[key] = { name: key, type: "line", data: [] };
+      }
+      // Push the value into the corresponding array
+      seriesMap[key].data.push(obj[key]);
+    }
+  });
+  const seriesData = Object.values(seriesMap);
+
+  const allData = seriesData.flatMap((seriesData) => seriesData.data); // Flatten all data into a single array
+  const minY = Math.min(...allData) - 0.1; // Find the minimum value
+  const maxY = Math.max(...allData); // Find the maximum value
+
+  const getOption = () => ({
+    title: {
+      text: title,
+      left: "center",
+      top: "top",
+      textStyle: {
+        fontSize: 20,
+        fontWeight: "bold",
+        color: "#333",
+      },
+    },
+    tooltip: {
+      trigger: "axis",
+    },
+    legend: {
+      orient: "vertical",
+      right: "1%",
+      top: "15%",
+      data: legendData,
+    },
+    grid: {
+      left: "3%",
+      right: "12%",
+      bottom: "3%",
+      containLabel: true,
+    },
+    /*toolbox: {
+      feature: {
+        saveAsImage: {}
+      }
+    },*/
+    xAxis: {
+      type: "category",
+      boundaryGap: false,
+      data: xAxisData,
+    },
+    yAxis: {
+      type: "value",
+      min: minY,
+      max: maxY,
+    },
+    series: seriesData,
+  });
+
+  return (
+    <ReactECharts
+      option={getOption()}
+      style={{ height: "50vh", width: "55vw" }}
+    />
+  );
+};
+
 const Homepage = ({ homeData }) => {
   return (
     <div>
@@ -145,12 +239,22 @@ const Homepage = ({ homeData }) => {
             gap: "15px",
           }}
         >
+          {/* <StatCard title="placeholder" stat="x" /> */}
+          <StatCard
+            title="total datasets"
+            stat={
+              homeData.overall_numbers &&
+              parseFloat(homeData.overall_numbers[0].total_ds).toLocaleString(
+                "us"
+              )
+            }
+          />
           <StatCard
             title="total resources"
             stat={
               homeData.overall_numbers &&
               parseFloat(homeData.overall_numbers[0].total_res).toLocaleString(
-                "it"
+                "us"
               )
             }
           />
@@ -159,30 +263,37 @@ const Homepage = ({ homeData }) => {
             stat={
               homeData.overall_numbers &&
               parseFloat(homeData.overall_numbers[0].csv_res).toLocaleString(
-                "it"
+                "us"
               )
             }
           />
-          <StatCard title="placeholder" stat="x" />
           <StatCard
             title="processed csv resources"
             stat={
               homeData.overall_numbers &&
               parseFloat(homeData.overall_numbers[0].csv_ok).toLocaleString(
-                "it"
+                "us"
               )
+            }
+          />
+          <StatCard
+            title="unavailable csv res"
+            stat={
+              homeData.overall_numbers &&
+              parseFloat(
+                homeData.overall_numbers[0].csv_unavail
+              ).toLocaleString("us")
             }
           />
           <StatCard
             title="invalid csv resources"
             stat={
               homeData.overall_numbers &&
-              parseFloat(homeData.overall_numbers[0].csv_error).toLocaleString(
-                "it"
-              )
+              parseFloat(
+                homeData.overall_numbers[0].csv_invalid
+              ).toLocaleString("us")
             }
           />
-          <StatCard title="placeholder" stat="x" />
         </section>
         <section
           style={{
@@ -194,7 +305,7 @@ const Homepage = ({ homeData }) => {
           }}
         >
           <ProgressLine
-            title={"daily registered csv"}
+            title={"daily discovered csv"}
             xAxis={
               homeData.daily_registered &&
               homeData.daily_registered.map((item) => item.x)
@@ -220,89 +331,24 @@ const Homepage = ({ homeData }) => {
       <div style={{ display: "flex", height: "55vh" }}>
         <section
           style={{
-            width: "60vw",
+            width: "40vw",
           }}
         >
-          <div style={{ display: "flex" }}>
-            <ScoreGauge
-              name={"ACC-I-3"}
-              value={
-                homeData.measure_averages && homeData.measure_averages[0].acci3
-              }
-              descr={"MEASURE <br/>DESCRIPTION"}
-            />
-            <ScoreGauge
-              name={"ACC-I-4"}
-              value={
-                homeData.measure_averages && homeData.measure_averages[0].acci4
-              }
-              descr={"MEASURE <br/>DESCRIPTION"}
-            />
-            <ScoreGauge
-              name={"AVA-D-1"}
-              value={
-                homeData.measure_averages && homeData.measure_averages[0].avad1
-              }
-              descr={"MEASURE <br/>DESCRIPTION"}
-            />
-            <ScoreGauge
-              name={"COM-I-1"}
-              value={
-                homeData.measure_averages && homeData.measure_averages[0].comi1
-              }
-              descr={"MEASURE <br/>DESCRIPTION"}
-            />
-            <ScoreGauge
-              name={"COM-I-5"}
-              value={
-                homeData.measure_averages && homeData.measure_averages[0].comi5
-              }
-              descr={"MEASURE <br/>DESCRIPTION"}
-            />
-          </div>
-          <div style={{ display: "flex" }}>
-            <ScoreGauge
-              name={"CON-I-2"}
-              value={
-                homeData.measure_averages && homeData.measure_averages[0].coni2
-              }
-              descr={"MEASURE <br/>DESCRIPTION"}
-            />
-            <ScoreGauge
-              name={"CON-I-3"}
-              value={
-                homeData.measure_averages && homeData.measure_averages[0].coni3
-              }
-              descr={"MEASURE <br/>DESCRIPTION"}
-            />
-            <ScoreGauge
-              name={"CON-I-4"}
-              value={
-                homeData.measure_averages && homeData.measure_averages[0].coni4
-              }
-              descr={"MEASURE <br/>DESCRIPTION"}
-            />
-            <ScoreGauge
-              name={"CON-I-5"}
-              value={
-                homeData.measure_averages && homeData.measure_averages[0].coni5
-              }
-              descr={"MEASURE <br/>DESCRIPTION"}
-            />
-            <ScoreGauge
-              name={"UND-I-1"}
-              value={
-                homeData.measure_averages && homeData.measure_averages[0].undi1
-              }
-              descr={"MEASURE <br/>DESCRIPTION"}
-            />
-          </div>
+          <ScoreBars
+            title={"total measure averages"}
+            data={homeData.measure_averages || []}
+          />
         </section>
         <section
           style={{
-            width: "40vw",
+            width: "55vw",
           }}
-        ></section>
+        >
+          <StackedLines
+            title={"cumulative measure averages"}
+            data={homeData.cumulative_averages || []}
+          />
+        </section>
       </div>
     </div>
   );

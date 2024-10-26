@@ -171,3 +171,33 @@ TABLESPACE pg_default;
 
 ALTER TABLE IF EXISTS opendata.resources
     OWNER to postgres;
+
+
+-- Table: opendata.measures
+
+-- DROP TABLE IF EXISTS opendata.measures;
+
+CREATE TABLE IF NOT EXISTS opendata.measures
+(
+    measure text COLLATE pg_catalog."default",
+    title text COLLATE pg_catalog."default",
+    descr text COLLATE pg_catalog."default"
+)
+
+TABLESPACE pg_default;
+
+ALTER TABLE IF EXISTS opendata.measures
+    OWNER to postgres;
+	
+INSERT INTO
+	OPENDATA.MEASURES (MEASURE, TITLE, DESCR)
+VALUES ('acci3','Acc-I-3','This is a measure.#It calculates something.'),
+('acci4','Acc-I-4','This is a measure.#It calculates something.'),
+('avad1','Ava-D-1','This is a measure.#It calculates something.'),
+('comi1','Com-I-1','This is a measure.#It calculates something.'),
+('comi5','Com-I-5','This is a measure.#It calculates something.'),
+('coni2','Con-I-2','This is a measure.#It calculates something.'),
+('coni3','Con-I-3','This is a measure.#It calculates something.'),
+('coni4','Con-I-4','This is a measure.#It calculates something.'),
+('coni5','Con-I-5','This is a measure.#It calculates something.'),
+('undi1','Und-I-1','This is a measure.#It calculates something.')
