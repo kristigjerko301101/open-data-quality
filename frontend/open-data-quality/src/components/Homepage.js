@@ -171,7 +171,6 @@ const StackedLines = ({ title, data }) => {
 
   const allData = seriesData.flatMap((seriesData) => seriesData.data); // Flatten all data into a single array
   const minY = Math.floor(Math.min(...allData) * 10) / 10; // Find the minimum value
-  console.log(minY)
   const maxY = Math.max(...allData); // Find the maximum value
 
   const getOption = () => ({
