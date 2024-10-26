@@ -13,7 +13,7 @@ RUN npm install
 # Copy the rest of the backend code
 COPY . .
 
-# Expose the port your app runs on
+# Expose the port the app runs on
 EXPOSE 5000
 
 # Command to run the app

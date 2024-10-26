@@ -114,7 +114,7 @@ section {
 }
 
 .custom-tooltip {
-  background-color: #003468 !important; /* Change this to your desired background color */
+  background-color: #003468 !important;
   color: #fff !important; /* Tooltip text color */
   border-radius: 4px !important; /* Optional: round the corners */
   font-size: 14px !important; /* Optional: adjust font size */
