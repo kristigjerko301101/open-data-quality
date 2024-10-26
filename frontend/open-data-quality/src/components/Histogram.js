@@ -26,7 +26,11 @@ const Histogram = ({ selectedDimension, selectedDimensionRow }) => {
             ? selectedDimension.charAt(0).toUpperCase() +
               selectedDimension.slice(1).toLowerCase()
             : ""
-        }: ${histogramData.dimension}`,
+        }: ${
+          histogramData.dimension && histogramData.dimension.length > 60
+            ? histogramData.dimension.substring(0, 60) + "..."
+            : histogramData.dimension
+        }`,
         left: "center",
       },
       tooltip: {},

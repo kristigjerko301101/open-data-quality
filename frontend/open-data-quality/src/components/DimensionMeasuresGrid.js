@@ -28,6 +28,11 @@ const DimensionMeasuresGrid = ({
       sortable: true,
       filter: false,
       width: 80,
+      comparator: (valA, valB, n1, n2, inverse) => {
+        const digitsA = parseInt(valA);
+        const digitsB = parseInt(valB);
+        return digitsA - digitsB;
+      },
     },
     {
       headerName: "AccI3",
