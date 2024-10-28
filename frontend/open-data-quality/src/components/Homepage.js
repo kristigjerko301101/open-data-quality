@@ -13,64 +13,6 @@ const StatCard = ({ title, stat }) => {
   );
 };
 
-const ProgressLine = ({ title, xAxis, series }) => {
-  const getOption = () => ({
-    title: {
-      text: title,
-      left: "center",
-      top: "top",
-      textStyle: {
-        fontSize: 18,
-        //fontWeight: "bold",
-        color: "#333",
-      },
-    },
-    tooltip: {
-      trigger: "axis",
-    },
-    /*legend: {
-      data: [],
-    },*/
-    grid: {
-      left: "3%",
-      right: "4%",
-      bottom: "3%",
-      top: "15%",
-      containLabel: true,
-    },
-    xAxis: {
-      type: "category",
-      boundaryGap: false,
-      data: xAxis,
-    },
-    yAxis: {
-      type: "value",
-    },
-    series: [
-      {
-        name: title,
-        type: "line",
-        stack: "Total",
-        data: series,
-      },
-    ],
-    toolbox: {
-      feature: {
-        saveAsImage: {
-          show: false,
-        },
-      },
-    },
-  });
-
-  return (
-    <ReactECharts
-      option={getOption()}
-      style={{ height: "30vh", width: "27vw" }}
-    />
-  );
-};
-
 const ScoreBars = ({ title, data }) => {
   const headerRow = ["measure", "title", "descr", "score", "amount"];
   const measuresObject = data;
@@ -149,7 +91,7 @@ const ScoreBars = ({ title, data }) => {
   );
 };
 
-const StackedLines = ({ title, data }) => {
+const StackedLinesMeasures = ({ title, data }) => {
   const legendData =
     data[0] && Object.keys(data[0]).filter((i) => i !== "refdate");
   const xAxisData = data.map((item) => item.refdate);
@@ -225,6 +167,91 @@ const StackedLines = ({ title, data }) => {
   );
 };
 
+const StackedLinesProcesses = ({ title, data }) => {
+  // Sort the data array by the refdate_orig field in ascending order
+  const sortedData = [...data].sort(
+    (a, b) => new Date(a.refdate_orig) - new Date(b.refdate_orig)
+  );
+
+  const legendData =
+    sortedData[0] &&
+    Object.keys(sortedData[0]).filter(
+      (i) => i !== "refdate" && i !== "refdate_orig"
+    );
+  const xAxisData = sortedData.map((item) => item.refdate);
+
+  // Initialize an object to hold the values for each key
+  const seriesMap = {};
+  // Iterate through each object in the sorted array
+  sortedData.forEach((obj) => {
+    for (const key of legendData) {
+      if (!seriesMap[key]) {
+        // If the key doesn't exist in the seriesMap, create it
+        seriesMap[key] = { name: key, type: "line", data: [] };
+      }
+      // Push the value into the corresponding array
+      seriesMap[key].data.push(obj[key]);
+    }
+  });
+  const seriesData = Object.values(seriesMap);
+
+  const lineColors =
+    title === "csv quality process"
+      ? ["#3ba272", "#ee6666", "#fac858"]
+      : ["#9a60b4", "#5470c6", "#73c0de"];
+
+  const getOption = () => ({
+    color: lineColors,
+    title: {
+      text: title,
+      left: "center",
+      top: "top",
+      textStyle: {
+        fontSize: 16,
+        fontWeight: "bold",
+        color: "#333",
+      },
+    },
+    tooltip: {
+      trigger: "axis",
+    },
+    legend: {
+      orient: "horizontal",
+      left: "center",
+      bottom: "-1%",
+      data: legendData,
+    },
+    grid: {
+      top: "15%",
+      left: "3%",
+      right: "5%",
+      bottom: "10%",
+      containLabel: true,
+    },
+    /*toolbox: {
+      feature: {
+        saveAsImage: {}
+      }
+    },*/
+    xAxis: {
+      type: "category",
+      boundaryGap: false,
+      data: xAxisData,
+    },
+    yAxis: {
+      type: "value",
+    },
+    series: seriesData,
+  });
+
+  return (
+    <ReactECharts
+      option={getOption()}
+      style={{ height: "30vh", width: "27vw" }}
+    />
+  );
+};
+
 const Homepage = ({ homeData }) => {
   return (
     <div>
@@ -232,7 +259,7 @@ const Homepage = ({ homeData }) => {
         <section
           style={{
             width: "40vw",
-            height: "30vh",
+            height: "31vh",
             display: "grid",
             gridTemplateColumns: "1fr 1fr 1fr",
             gridTemplateRows: "1fr 1fr",
@@ -241,7 +268,7 @@ const Homepage = ({ homeData }) => {
         >
           {/* <StatCard title="placeholder" stat="x" /> */}
           <StatCard
-            title="total datasets"
+            title="discovered datasets"
             stat={
               homeData.overall_numbers &&
               parseFloat(homeData.overall_numbers[0].total_ds).toLocaleString(
@@ -250,7 +277,7 @@ const Homepage = ({ homeData }) => {
             }
           />
           <StatCard
-            title="total resources"
+            title="discovered resources"
             stat={
               homeData.overall_numbers &&
               parseFloat(homeData.overall_numbers[0].total_res).toLocaleString(
@@ -259,7 +286,7 @@ const Homepage = ({ homeData }) => {
             }
           />
           <StatCard
-            title="total csv resources"
+            title="discovered csv"
             stat={
               homeData.overall_numbers &&
               parseFloat(homeData.overall_numbers[0].csv_res).toLocaleString(
@@ -268,7 +295,7 @@ const Homepage = ({ homeData }) => {
             }
           />
           <StatCard
-            title="processed csv resources"
+            title="processed csv"
             stat={
               homeData.overall_numbers &&
               parseFloat(homeData.overall_numbers[0].csv_ok).toLocaleString(
@@ -277,7 +304,7 @@ const Homepage = ({ homeData }) => {
             }
           />
           <StatCard
-            title="unavailable csv res"
+            title="unavailable csv"
             stat={
               homeData.overall_numbers &&
               parseFloat(
@@ -286,7 +313,7 @@ const Homepage = ({ homeData }) => {
             }
           />
           <StatCard
-            title="invalid csv resources"
+            title="invalid format csv"
             stat={
               homeData.overall_numbers &&
               parseFloat(
@@ -297,34 +324,20 @@ const Homepage = ({ homeData }) => {
         </section>
         <section
           style={{
-            width: "55vw",
-            height: "30vh",
+            width: "56vw",
+            height: "31vh",
             display: "grid",
             gridTemplateColumns: "1fr 1fr ",
             gap: "15px",
           }}
         >
-          <ProgressLine
-            title={"daily discovered csv"}
-            xAxis={
-              homeData.daily_registered &&
-              homeData.daily_registered.map((item) => item.x)
-            }
-            series={
-              homeData.daily_registered &&
-              homeData.daily_registered.map((item) => item.y)
-            }
+          <StackedLinesProcesses
+            title={"discovery process"}
+            data={homeData.daily_registered || []}
           />
-          <ProgressLine
-            title={"daily processed csv"}
-            xAxis={
-              homeData.daily_processed &&
-              homeData.daily_processed.map((item) => item.x)
-            }
-            series={
-              homeData.daily_processed &&
-              homeData.daily_processed.map((item) => item.y)
-            }
+          <StackedLinesProcesses
+            title={"csv quality process"}
+            data={homeData.daily_processed || []}
           />
         </section>
       </div>
@@ -335,17 +348,17 @@ const Homepage = ({ homeData }) => {
           }}
         >
           <ScoreBars
-            title={"total measure averages"}
+            title={"quality measures - overall average"}
             data={homeData.measure_averages || []}
           />
         </section>
         <section
           style={{
-            width: "55vw",
+            width: "56vw",
           }}
         >
-          <StackedLines
-            title={"cumulative measure averages"}
+          <StackedLinesMeasures
+            title={"quality measures - cumulative average"}
             data={homeData.cumulative_averages || []}
           />
         </section>

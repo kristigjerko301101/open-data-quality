@@ -22,6 +22,109 @@ const pool = new Pool({
 
 app.get("/api/home", async (req, res) => {
   try {
+    const overall_numbers = await pool.query(
+      `SELECT *
+FROM (SELECT COUNT(DISTINCT id) AS total_ds FROM opendata.datasets) t0
+CROSS JOIN (SELECT COUNT(DISTINCT id) AS total_res FROM opendata.resources) t1
+CROSS JOIN (SELECT COUNT(DISTINCT id) AS csv_res FROM opendata.resources WHERE format = 'CSV') t2
+CROSS JOIN (SELECT COUNT(DISTINCT id) AS csv_ok FROM opendata.log_csv WHERE msg = 'OK') t3
+CROSS JOIN (SELECT COUNT(DISTINCT id) AS csv_unavail FROM opendata.log_csv t WHERE msg != 'OK'
+            AND NOT EXISTS 
+            (SELECT 1 FROM opendata.log_csv s 
+             WHERE s.id = t.id AND (msg = 'OK' OR msg LIKE '%Content-Type%'))) t4
+CROSS JOIN (SELECT COUNT(DISTINCT id) AS csv_invalid FROM opendata.log_csv t WHERE msg LIKE '%Content-Type%'
+            AND NOT EXISTS 
+            (SELECT 1 FROM opendata.log_csv s 
+             WHERE s.id = t.id AND msg = 'OK')) t5`
+    );
+
+    const daily_registered = await pool.query(
+      `SELECT
+	ROW_REGISTERED AS REFDATE_ORIG,
+	TO_CHAR(ROW_REGISTERED, 'DD/MM') AS REFDATE,
+	COUNT(DISTINCT DATASET_ID) AS DATASETS,
+	COUNT(DISTINCT RESOURCE_ID) AS RESOURCES,
+	SUM(CSV_FORMAT) AS CSV
+FROM
+	(
+		SELECT
+			CAST(R.ROW_REGISTERED AS DATE) AS ROW_REGISTERED,
+			D.ID AS DATASET_ID,
+			R.ID AS RESOURCE_ID,
+			CASE
+				WHEN R.FORMAT = 'CSV' THEN 1
+				ELSE 0
+			END AS CSV_FORMAT
+		FROM
+			OPENDATA.DATASETS D
+			INNER JOIN OPENDATA.RESOURCES R ON D.ID = R.DATASET
+		WHERE
+			R.ROW_REGISTERED != '1900-01-01'
+	) T
+GROUP BY ROW_REGISTERED
+ORDER BY REFDATE_ORIG DESC
+LIMIT 7`
+    );
+
+    const daily_processed = await pool.query(
+      `SELECT
+	COALESCE(T1.TSCREATION, T2.TSCREATION, T3.TSCREATION) AS REFDATE_ORIG,
+	TO_CHAR(
+		COALESCE(T1.TSCREATION, T2.TSCREATION, T3.TSCREATION),
+		'DD/MM'
+	) AS REFDATE,
+	COALESCE(T1.PROCESSED, 0) AS PROCESSED,
+	COALESCE(T2.UNAVAILABLE, 0) AS UNAVAILABLE,
+	COALESCE(T3.INVALID, 0) AS INVALID
+FROM
+	(
+		SELECT
+			CAST(TSCREATION AS DATE) AS TSCREATION,
+			TO_CHAR(CAST(TSCREATION AS DATE), 'DD/MM') AS REFDATE,
+			COUNT(DISTINCT ID) AS PROCESSED
+		FROM OPENDATA.LOG_CSV
+		WHERE MSG = 'OK'
+		GROUP BY CAST(TSCREATION AS DATE)
+		ORDER BY TSCREATION DESC
+	) T1
+	FULL JOIN (
+		SELECT
+			CAST(TSCREATION AS DATE) AS TSCREATION,
+			TO_CHAR(CAST(TSCREATION AS DATE), 'DD/MM') AS REFDATE,
+			COUNT(DISTINCT ID) AS UNAVAILABLE
+		FROM OPENDATA.LOG_CSV T
+		WHERE MSG != 'OK'
+			AND NOT EXISTS (
+				SELECT 1
+				FROM OPENDATA.LOG_CSV S
+				WHERE S.ID = T.ID
+					AND (
+						MSG = 'OK'
+						OR MSG LIKE '%Content-Type%'
+					)
+			)
+		GROUP BY CAST(TSCREATION AS DATE)
+		ORDER BY TSCREATION DESC
+	) T2 ON T1.TSCREATION = T2.TSCREATION
+	FULL JOIN (
+		SELECT
+			CAST(TSCREATION AS DATE) AS TSCREATION,
+			TO_CHAR(CAST(TSCREATION AS DATE), 'DD/MM') AS REFDATE,
+			COUNT(DISTINCT ID) AS INVALID
+		FROM OPENDATA.LOG_CSV T
+		WHERE MSG LIKE '%Content-Type%'
+			AND NOT EXISTS (
+				SELECT 1
+				FROM OPENDATA.LOG_CSV S
+				WHERE S.ID = T.ID AND MSG = 'OK'
+			)
+		GROUP BY CAST(TSCREATION AS DATE)
+		ORDER BY TSCREATION DESC
+	) T3 ON T1.TSCREATION = T3.TSCREATION
+ORDER BY REFDATE_ORIG DESC
+LIMIT 7`
+    );
+
     const measure_averages = await pool.query(
       `SELECT AV.MEASURE, COALESCE(MS.TITLE,'') as TITLE, COALESCE(MS.DESCR,'') as DESCR, AV.SCORE, AV.SCORE AS AMOUNT
 FROM
@@ -39,22 +142,6 @@ FROM
 	) AV
 	LEFT JOIN OPENDATA.MEASURES MS ON AV.MEASURE = MS.MEASURE
 ORDER BY AV.MEASURE ASC;`
-    );
-
-    const overall_numbers = await pool.query(
-      `SELECT *
-FROM (SELECT COUNT(DISTINCT id) AS total_ds FROM opendata.datasets) t0
-CROSS JOIN (SELECT COUNT(DISTINCT id) AS total_res FROM opendata.resources) t1
-CROSS JOIN (SELECT COUNT(DISTINCT id) AS csv_res FROM opendata.resources WHERE format = 'CSV') t2
-CROSS JOIN (SELECT COUNT(DISTINCT id) AS csv_ok FROM opendata.log_csv WHERE msg = 'OK') t3
-CROSS JOIN (SELECT COUNT(DISTINCT id) AS csv_unavail FROM opendata.log_csv t WHERE msg != 'OK'
-            AND NOT EXISTS 
-            (SELECT 1 FROM opendata.log_csv s 
-             WHERE s.id = t.id AND (msg = 'OK' OR msg LIKE '%Content-Type%'))) t4
-CROSS JOIN (SELECT COUNT(DISTINCT id) AS csv_invalid FROM opendata.log_csv t WHERE msg LIKE '%Content-Type%'
-            AND NOT EXISTS 
-            (SELECT 1 FROM opendata.log_csv s 
-             WHERE s.id = t.id AND msg = 'OK')) t5`
     );
 
     const cumulative_averages = await pool.query(
@@ -100,34 +187,12 @@ ORDER BY
     refdate;`
     );
 
-    const daily_registered = await pool.query(
-      `SELECT TO_CHAR(ROW_REGISTERED, 'DD/MM') as x, y 
-FROM ( SELECT DISTINCT ROW_REGISTERED, COUNT(*) AS y
-FROM ( SELECT CAST(ROW_REGISTERED AS DATE) AS ROW_REGISTERED
-		FROM OPENDATA.RESOURCES	WHERE ROW_REGISTERED != '1900-01-01' AND FORMAT = 'CSV' ) T1
-GROUP BY ROW_REGISTERED
-ORDER BY ROW_REGISTERED DESC
-LIMIT 7 ) T2
-ORDER BY ROW_REGISTERED ASC`
-    );
-
-    const daily_processed = await pool.query(
-      `SELECT TO_CHAR(ROW_PROCESSED, 'DD/MM') as x, y 
-FROM ( SELECT DISTINCT ROW_PROCESSED, COUNT(*) AS y
-FROM ( SELECT CAST(ROW_PROCESSED AS DATE) AS ROW_PROCESSED
-		FROM OPENDATA.RESOURCES	WHERE ROW_PROCESSED != '1900-01-01' AND FORMAT = 'CSV' ) T1
-GROUP BY ROW_PROCESSED
-ORDER BY ROW_PROCESSED DESC
-LIMIT 7 ) T2
-ORDER BY ROW_PROCESSED ASC`
-    );
-
     result = {
-      measure_averages: measure_averages.rows,
       overall_numbers: overall_numbers.rows,
-      cumulative_averages: cumulative_averages.rows,
       daily_registered: daily_registered.rows,
       daily_processed: daily_processed.rows,
+      measure_averages: measure_averages.rows,
+      cumulative_averages: cumulative_averages.rows,
     };
     res.json(result);
   } catch (error) {
@@ -381,6 +446,5 @@ INNER JOIN opendata.datasets d ON r.dataset = d.id`
 // Start the server
 const PORT = 5000;
 app.listen(PORT, () => {
-  //console.log(process.env);
   console.log(`Server is running on port ${PORT}`);
 });

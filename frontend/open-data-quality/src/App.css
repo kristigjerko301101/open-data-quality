@@ -39,7 +39,8 @@
 
 section {
   padding: 10px;
-  margin: 10px;
+  margin-left: 10px;
+  margin-top: 10px;
   background-color: #f4f4f4;
   border-radius: 8px;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
@@ -166,4 +167,16 @@ section {
 .description {
   font-size: 0.9rem;
   color: #555;
+}
+
+.apache-colors {
+  color: #5470c6;
+  color: #91cc75;
+  color: #fac858;
+  color: #ee6666;
+  color: #73c0de;
+  color: #3ba272;
+  color: #fc8452;
+  color: #9a60b4;
+  color: #ea7ccc;
 }

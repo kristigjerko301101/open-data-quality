@@ -144,6 +144,18 @@ const App = () => {
           setDimensionData(data.dimension);
           setDetailData(data.detail);
         }
+
+        // Check if minimum loading time has passed
+        const elapsedTime = Date.now() - startTime;
+        const remainingTime = minimumLoadingTime - elapsedTime;
+
+        // Delay stopping the loading state if minimum loading time is not met
+        setTimeout(
+          () => {
+            setLoading(false);
+          },
+          remainingTime > 0 ? remainingTime : 0
+        );
       })
       .catch((error) => console.error("Error fetching data:", error));
 
@@ -157,14 +169,6 @@ const App = () => {
     );
 
     setSelectedDimension(selectedDimension);
-
-    const remainingTime = minimumLoadingTime - (Date.now() - startTime);
-    setTimeout(
-      () => {
-        setLoading(false);
-      },
-      remainingTime > 0 ? remainingTime : 0
-    );
   }, [selectedDimension]);
 
   const renderSelectedDimensionPage = useMemo(() => {
@@ -198,7 +202,9 @@ const App = () => {
         selectedDimension={selectedDimension}
         setSelectedDimension={setSelectedDimension}
       />
-      <div style={{ height: "90vh" }}>{renderSelectedDimensionPage}</div>
+      {!loading && (
+        <div style={{ height: "90vh" }}>{renderSelectedDimensionPage}</div>
+      )}
       {loading && (
         <div className="spinner-overlay">
           <ClipLoader color="#ffffff" loading={loading} size={50} />
