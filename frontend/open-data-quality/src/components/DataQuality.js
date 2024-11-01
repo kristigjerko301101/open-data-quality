@@ -1,7 +1,10 @@
 import React, { useState, useEffect } from "react";
 import DimensionMeasuresGrid from "./DimensionMeasuresGrid";
-import Histogram from "./Histogram";
 import DetailMeasuresGrid from "./DetailMeasuresGrid";
+import { Histogram, Boxplot } from "./DimensionMeasuresPlot";
+import { Tooltip } from "react-tooltip";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faChartSimple } from "@fortawesome/free-solid-svg-icons";
 
 const DataQuality = ({
   selectedDimension,
@@ -11,6 +14,7 @@ const DataQuality = ({
 }) => {
   const [selectedDimensionRow, setSelectedDimensionRow] = useState(null);
   const [filteredDetailData, setFilteredDetailData] = useState([]);
+  const [selectedChart, setSelectedChart] = useState("histogram");
 
   useEffect(() => {
     setFilteredDetailData([]);
@@ -51,12 +55,55 @@ const DataQuality = ({
           />
         </div>
         <div
-          style={{ display: "flex", width: "45vw", justifyContent: "center" }}
+          style={{
+            display: "flex",
+            width: "45vw",
+            justifyContent: "center",
+            position: "relative",
+          }}
         >
-          <Histogram
-            selectedDimension={selectedDimension}
-            selectedDimensionRow={selectedDimensionRow}
-          />
+          {selectedChart === "histogram" ? (
+            <Histogram
+              selectedDimension={selectedDimension}
+              selectedDimensionRow={selectedDimensionRow}
+            />
+          ) : (
+            <Boxplot
+              selectedDimension={selectedDimension}
+              selectedDimensionRow={selectedDimensionRow}
+              data={detailData || []}
+            />
+          )}
+
+          <div
+            style={{
+              position: "absolute",
+              right: "5px",
+              zIndex: 10,
+            }}
+          >
+            <button
+              className={`download-button`}
+              data-tooltip-id="distributionTip"
+              onClick={() =>
+                setSelectedChart((currentChart) =>
+                  currentChart === "histogram" ? "boxplot" : "histogram"
+                )
+              }
+            >
+              <FontAwesomeIcon icon={faChartSimple} />
+            </button>
+            <Tooltip
+              id="distributionTip"
+              place="top-end"
+              className="custom-tooltip"
+              noArrow
+            >
+              {selectedChart === "histogram"
+                ? "switch to distribution"
+                : "switch to average"}
+            </Tooltip>
+          </div>
         </div>
       </section>
       <section style={{ display: "flex", height: "50vh" }}>

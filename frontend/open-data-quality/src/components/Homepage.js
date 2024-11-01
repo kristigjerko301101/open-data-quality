@@ -1,7 +1,8 @@
-import React from "react";
+import React, { useEffect, useRef } from "react";
 import "../App.css";
-
 import ReactECharts from "echarts-for-react";
+import * as echarts from "echarts";
+import * as echarts_transform from "echarts-simple-transform";
 
 const StatCard = ({ title, stat }) => {
   return (
@@ -13,161 +14,7 @@ const StatCard = ({ title, stat }) => {
   );
 };
 
-const ScoreBars = ({ title, data }) => {
-  const headerRow = ["measure", "title", "descr", "score", "amount"];
-  const measuresObject = data;
-  const sourceData = measuresObject.map((obj) => Object.values(obj));
-  sourceData.unshift(headerRow);
-
-  const getOption = () => ({
-    title: {
-      text: title,
-      left: "center",
-      top: "top",
-      textStyle: {
-        fontSize: 20,
-        fontWeight: "bold",
-        color: "#333",
-      },
-    },
-    grid: {
-      containLabel: true,
-      left: "2%", // Reduce left space
-      right: "4%", // Reduce right space
-      top: "10%", // Adjust top space if needed
-      bottom: "15%", // Adjust bottom space if needed
-    },
-    tooltip: {
-      trigger: "item", // Trigger on the item (bar)
-      formatter: function (params) {
-        const measure = params.data[1]; // title
-        const descr = params.data[2]; // descr
-        const score = params.data[3]; // score
-        return `
-          <strong>${measure}</strong><br/>
-          <strong>Score:</strong> ${score}<br/>
-          <strong>Descr:</strong> ${descr.replace("#", "<br/>")}
-        `;
-      },
-      axisPointer: {
-        type: "shadow", // Display a shadow pointer
-      },
-    },
-    dataset: {
-      source: sourceData,
-    },
-    xAxis: { name: "" },
-    yAxis: { type: "category", inverse: "true" },
-    series: [
-      {
-        type: "bar",
-        encode: {
-          x: "amount",
-          y: "measure",
-        },
-      },
-    ],
-    visualMap: {
-      orient: "horizontal",
-      left: "center",
-      min: 0,
-      max: 1,
-      text: ["1", "0"],
-      dimension: 3, //score
-      inRange: {
-        color: ["#FD665F", "#FFCE34", "#65B581"],
-      },
-      formatter: (value) => {
-        return value.toFixed(3);
-      },
-    },
-  });
-
-  return (
-    <ReactECharts
-      option={getOption()}
-      style={{ height: "50vh", width: "40vw" }}
-    />
-  );
-};
-
-const StackedLinesMeasures = ({ title, data }) => {
-  const legendData =
-    data[0] && Object.keys(data[0]).filter((i) => i !== "refdate");
-  const xAxisData = data.map((item) => item.refdate);
-
-  // Initialize an object to hold the values for each key
-  const seriesMap = {};
-  // Iterate through each object in the input array
-  data.forEach((obj) => {
-    for (const key of legendData) {
-      if (!seriesMap[key]) {
-        // If the key doesn't exist in the seriesMap, create it
-        seriesMap[key] = { name: key, type: "line", data: [] };
-      }
-      // Push the value into the corresponding array
-      seriesMap[key].data.push(obj[key]);
-    }
-  });
-  const seriesData = Object.values(seriesMap);
-
-  const allData = seriesData.flatMap((seriesData) => seriesData.data); // Flatten all data into a single array
-  const minY = Math.floor(Math.min(...allData) * 10) / 10; // Find the minimum value
-  const maxY = Math.max(...allData); // Find the maximum value
-
-  const getOption = () => ({
-    title: {
-      text: title,
-      left: "center",
-      top: "top",
-      textStyle: {
-        fontSize: 20,
-        fontWeight: "bold",
-        color: "#333",
-      },
-    },
-    tooltip: {
-      trigger: "axis",
-    },
-    legend: {
-      orient: "vertical",
-      right: "1%",
-      top: "15%",
-      data: legendData,
-    },
-    grid: {
-      left: "3%",
-      right: "12%",
-      bottom: "3%",
-      containLabel: true,
-    },
-    /*toolbox: {
-      feature: {
-        saveAsImage: {}
-      }
-    },*/
-    xAxis: {
-      type: "category",
-      boundaryGap: false,
-      data: xAxisData,
-    },
-    yAxis: {
-      type: "value",
-      min: minY,
-      max: maxY,
-    },
-    series: seriesData,
-  });
-
-  return (
-    <ReactECharts
-      option={getOption()}
-      style={{ height: "50vh", width: "55vw" }}
-    />
-  );
-};
-
-const StackedLinesProcesses = ({ title, data }) => {
+const StackedLines = ({ title, data }) => {
   // Sort the data array by the refdate_orig field in ascending order
   const sortedData = [...data].sort(
     (a, b) => new Date(a.refdate_orig) - new Date(b.refdate_orig)
@@ -252,6 +99,180 @@ const StackedLinesProcesses = ({ title, data }) => {
   );
 };
 
+const ScoreBars = ({ title, data }) => {
+  const headerRow = ["measure", "title", "descr", "score", "amount"];
+  const measuresObject = data;
+  const sourceData = measuresObject.map((obj) => Object.values(obj));
+  sourceData.unshift(headerRow);
+
+  const getOption = () => ({
+    title: {
+      text: title,
+      left: "center",
+      top: "top",
+      textStyle: {
+        fontSize: 20,
+        fontWeight: "bold",
+        color: "#333",
+      },
+    },
+    grid: {
+      containLabel: true,
+      left: "2%", // Reduce left space
+      right: "4%", // Reduce right space
+      top: "10%", // Adjust top space if needed
+      bottom: "15%", // Adjust bottom space if needed
+    },
+    tooltip: {
+      trigger: "item", // Trigger on the item (bar)
+      formatter: function (params) {
+        const measure = params.data[1]; // title
+        const descr = params.data[2]; // descr
+        const score = params.data[3]; // score
+        return `
+          <strong>${measure}</strong><br/>
+          <strong>Score:</strong> ${score}<br/>
+          <strong>Descr:</strong> ${descr.replace("#", "<br/>")}
+        `;
+      },
+      axisPointer: {
+        type: "shadow", // Display a shadow pointer
+      },
+    },
+    dataset: {
+      source: sourceData,
+    },
+    xAxis: { name: "" },
+    yAxis: { type: "category", inverse: "true" },
+    series: [
+      {
+        type: "bar",
+        encode: {
+          x: "amount",
+          y: "measure",
+        },
+      },
+    ],
+    visualMap: {
+      orient: "horizontal",
+      left: "center",
+      min: 0,
+      max: 1,
+      text: ["1", "0"],
+      dimension: 3, //score
+      inRange: {
+        color: ["#FD665F", "#FFCE34", "#65B581"],
+      },
+      formatter: (value) => {
+        return value.toFixed(3);
+      },
+    },
+  });
+
+  return (
+    <ReactECharts
+      option={getOption()}
+      style={{ height: "50vh", width: "55vw" }}
+    />
+  );
+};
+
+const BoxplotChart = ({ data }) => {
+  const rawData = data.map((obj) => Object.values(obj));
+  rawData.unshift(["Score", "Measure"]);
+
+  const chartRef = useRef(null);
+
+  useEffect(() => {
+    const chartInstance = echarts.init(chartRef.current);
+    echarts.registerTransform(echarts_transform.aggregate);
+
+    const option = {
+      dataset: [
+        {
+          id: "raw",
+          source: rawData,
+        },
+        {
+          id: "measures_aggregate",
+          fromDatasetId: "raw",
+          transform: [
+            {
+              type: "ecSimpleTransform:aggregate",
+              config: {
+                resultDimensions: [
+                  { name: "min", from: "Score", method: "min" },
+                  { name: "Q1", from: "Score", method: "Q1" },
+                  { name: "median", from: "Score", method: "median" },
+                  { name: "Q3", from: "Score", method: "Q3" },
+                  { name: "max", from: "Score", method: "max" },
+                  { name: "Measure", from: "Measure" },
+                ],
+                groupBy: "Measure",
+              },
+            },
+            {
+              type: "sort",
+              config: {
+                dimension: "Measure",
+                order: "desc",
+              },
+            },
+          ],
+        },
+      ],
+      title: {
+        text: "quality measures - distribution",
+        left: "center",
+        top: "top",
+        textStyle: {
+          fontSize: 20,
+          fontWeight: "bold",
+          color: "#333",
+        },
+      },
+      tooltip: {
+        trigger: "axis",
+        confine: true,
+      },
+      xAxis: {
+        name: "",
+      },
+      yAxis: {
+        type: "category",
+      },
+      grid: {
+        bottom: "15%",
+        top: "10%",
+      },
+      series: [
+        {
+          name: "boxplot",
+          type: "boxplot",
+          datasetId: "measures_aggregate",
+          itemStyle: {
+            color: "#b3daff", //"#b8c5f2",
+          },
+          encode: {
+            x: ["min", "Q1", "median", "Q3", "max"],
+            y: "Measure",
+            itemName: ["Measure"],
+            tooltip: ["min", "Q1", "median", "Q3", "max"],
+          },
+        },
+      ],
+    };
+
+    chartInstance.setOption(option);
+
+    return () => {
+      chartInstance.dispose();
+    };
+  }, []);
+
+  return <div ref={chartRef} style={{ height: "50vh", width: "40vw" }} />;
+};
+
 const Homepage = ({ homeData }) => {
   return (
     <div>
@@ -331,11 +352,11 @@ const Homepage = ({ homeData }) => {
             gap: "15px",
           }}
         >
-          <StackedLinesProcesses
+          <StackedLines
             title={"discovery process"}
             data={homeData.daily_registered || []}
           />
-          <StackedLinesProcesses
+          <StackedLines
             title={"csv quality process"}
             data={homeData.daily_processed || []}
           />
@@ -347,19 +368,16 @@ const Homepage = ({ homeData }) => {
             width: "40vw",
           }}
         >
-          <ScoreBars
-            title={"quality measures - overall average"}
-            data={homeData.measure_averages || []}
-          />
+          <BoxplotChart data={homeData.distribution_data || []} />
         </section>
         <section
           style={{
             width: "56vw",
           }}
         >
-          <StackedLinesMeasures
-            title={"quality measures - cumulative average"}
-            data={homeData.cumulative_averages || []}
+          <ScoreBars
+            title={"quality measures - overall average"}
+            data={homeData.measure_averages || []}
           />
         </section>
       </div>

@@ -144,47 +144,17 @@ FROM
 ORDER BY AV.MEASURE ASC;`
     );
 
-    const cumulative_averages = await pool.query(
-      `
-WITH recent_dates AS (
-    SELECT DISTINCT tscreation::date AS refdate
-    FROM opendata.quality
-    ORDER BY refdate DESC
-    LIMIT 7
-),
-daily_averages AS (
-    SELECT 
-        tscreation::date AS refdate,
-        ROUND(AVG(acci3), 3) AS acci3,
-        ROUND(AVG(acci4), 3) AS acci4,
-        ROUND(AVG(avad1), 3) AS avad1,
-        ROUND(AVG(comi1), 3) AS comi1,
-        ROUND(AVG(comi5), 3) AS comi5,
-        ROUND(AVG(coni2), 3) AS coni2,
-        ROUND(AVG(coni3), 3) AS coni3,
-        ROUND(AVG(coni4), 3) AS coni4,
-        ROUND(AVG(coni5), 3) AS coni5,
-        ROUND(AVG(undi1), 3) AS undi1
-    FROM opendata.quality q
-    WHERE tscreation::date IN (SELECT refdate FROM recent_dates)
-    GROUP BY refdate
-)
-SELECT 
-    TO_CHAR(refdate, 'DD/MM/YYYY') AS refdate,
-    ROUND(AVG(acci3) OVER (ORDER BY refdate),3) AS acci3,
-    ROUND(AVG(acci4) OVER (ORDER BY refdate),3) AS acci4,
-    ROUND(AVG(avad1) OVER (ORDER BY refdate),3) AS avad1,
-    ROUND(AVG(comi1) OVER (ORDER BY refdate),3) AS comi1,
-    ROUND(AVG(comi5) OVER (ORDER BY refdate),3) AS comi5,
-    ROUND(AVG(coni2) OVER (ORDER BY refdate),3) AS coni2,
-    ROUND(AVG(coni3) OVER (ORDER BY refdate),3) AS coni3,
-    ROUND(AVG(coni4) OVER (ORDER BY refdate),3) AS coni4,
-    ROUND(AVG(coni5) OVER (ORDER BY refdate),3) AS coni5,
-    ROUND(AVG(undi1) OVER (ORDER BY refdate),3) AS undi1
-FROM 
-    daily_averages
-ORDER BY 
-    refdate;`
+    const distribution_data = await pool.query(
+      `SELECT ROUND(ACCI3, 3) AS SCORE, 'acci3' AS MEASURE FROM OPENDATA.QUALITY Q UNION ALL
+SELECT ROUND(ACCI4, 3) AS SCORE, 'acci4' AS MEASURE FROM OPENDATA.QUALITY Q UNION ALL
+SELECT ROUND(AVAD1, 3) AS SCORE, 'avad1' AS MEASURE FROM OPENDATA.QUALITY Q UNION ALL
+SELECT ROUND(COMI1, 3) AS SCORE, 'comi1' AS MEASURE FROM OPENDATA.QUALITY Q UNION ALL
+SELECT ROUND(COMI5, 3) AS SCORE, 'comi5' AS MEASURE FROM OPENDATA.QUALITY Q UNION ALL
+SELECT ROUND(CONI2, 3) AS SCORE, 'coni2' AS MEASURE FROM OPENDATA.QUALITY Q UNION ALL
+SELECT ROUND(CONI3, 3) AS SCORE, 'coni3' AS MEASURE FROM OPENDATA.QUALITY Q UNION ALL
+SELECT ROUND(CONI4, 3) AS SCORE, 'coni4' AS MEASURE FROM OPENDATA.QUALITY Q UNION ALL
+SELECT ROUND(CONI5, 3) AS SCORE, 'coni5' AS MEASURE FROM OPENDATA.QUALITY Q UNION ALL
+SELECT ROUND(UNDI1, 3) AS SCORE, 'undi1' AS MEASURE FROM OPENDATA.QUALITY Q`
     );
 
     result = {
@@ -192,7 +162,7 @@ ORDER BY
       daily_registered: daily_registered.rows,
       daily_processed: daily_processed.rows,
       measure_averages: measure_averages.rows,
-      cumulative_averages: cumulative_averages.rows,
+      distribution_data: distribution_data.rows,
     };
     res.json(result);
   } catch (error) {
