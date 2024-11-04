@@ -2,7 +2,11 @@ import React, { useEffect, useRef } from "react";
 import * as echarts from "echarts";
 import * as echarts_transform from "echarts-simple-transform";
 
-export const Histogram = ({ selectedDimension, selectedDimensionRow }) => {
+export const Histogram = ({
+  selectedDimension,
+  selectedDimensionRow,
+  avgData,
+}) => {
   useEffect(() => {
     const chart = echarts.init(document.getElementById("histogram"));
 
@@ -34,7 +38,22 @@ export const Histogram = ({ selectedDimension, selectedDimensionRow }) => {
         }`,
         left: "center",
       },
-      tooltip: {},
+      tooltip: {
+        trigger: "axis",
+        formatter: function (params) {
+          const { name, value } = params[0];
+          const currentData = avgData.find((i) => i.measure === name);
+
+          const measure = currentData && currentData.title;
+          const descr = currentData && currentData.descr;
+          const score = currentData && currentData.score;
+          return `
+            <strong>${measure}</strong><br/>
+            <strong>Score:</strong> ${score}<br/>
+            <strong>Descr:</strong> ${descr.replace("#", "<br/>")}
+          `;
+        },
+      },
       xAxis: {
         data: Object.keys(histogramData).slice(2), // exclude dimension and total
       },
@@ -48,7 +67,7 @@ export const Histogram = ({ selectedDimension, selectedDimensionRow }) => {
           name: "Measures",
           type: "bar",
           data: Object.values(histogramData).slice(2), // exclude dimension and total
-          itemStyle: { color: "#003468" },
+          itemStyle: { color: "#b3daff", borderColor: "#003468" },
         },
       ],
       grid: {
@@ -70,44 +89,48 @@ export const Histogram = ({ selectedDimension, selectedDimensionRow }) => {
   return <div id="histogram" style={{ height: "100%", width: "100%" }}></div>;
 };
 
-export const Boxplot = ({ selectedDimension, selectedDimensionRow, data }) => {
-  const histogramData = selectedDimensionRow
-    ? selectedDimensionRow
-    : {
-        dimension: "",
-        total: "0",
-        acci3: "0",
-        acci4: "0",
-        comi1: "0",
-        comi5: "0",
-        coni2: "0",
-        coni3: "0",
-        avad1: "0",
-      };
-  const measureKeys = [
-    "acci3",
-    "acci4",
-    "avad1",
-    "comi1",
-    "comi5",
-    "coni2",
-    "coni3",
-    "coni4",
-    "coni5",
-    "undi1",
-  ];
-  const rawData = data.flatMap((obj) =>
-    Object.entries(obj)
-      .filter(([key, _]) => measureKeys.includes(key))
-      .map(([key, value]) => [value, key])
-  );
-  rawData.unshift(["Score", "Measure"]);
-
+export const Boxplot = ({
+  selectedDimension,
+  selectedDimensionRow,
+  data,
+  avgData,
+}) => {
   const chartRef = useRef(null);
-
   useEffect(() => {
     const chartInstance = echarts.init(chartRef.current);
     echarts.registerTransform(echarts_transform.aggregate);
+
+    const histogramData = selectedDimensionRow
+      ? selectedDimensionRow
+      : {
+          dimension: "",
+          total: "0",
+          acci3: "0",
+          acci4: "0",
+          comi1: "0",
+          comi5: "0",
+          coni2: "0",
+          coni3: "0",
+          avad1: "0",
+        };
+    const measureKeys = [
+      "acci3",
+      "acci4",
+      "avad1",
+      "comi1",
+      "comi5",
+      "coni2",
+      "coni3",
+      "coni4",
+      "coni5",
+      "undi1",
+    ];
+    const rawData = data.flatMap((obj) =>
+      Object.entries(obj)
+        .filter(([key, _]) => measureKeys.includes(key))
+        .map(([key, value]) => [value, key])
+    );
+    rawData.unshift(["Score", "Measure"]);
 
     const option = {
       dataset: [
@@ -159,6 +182,31 @@ export const Boxplot = ({ selectedDimension, selectedDimensionRow, data }) => {
       tooltip: {
         trigger: "axis",
         confine: true,
+        formatter: function (params) {
+          const { name, value } = params[0];
+          const currentData = avgData.find((i) => i.measure === name);
+
+          const measure = currentData && currentData.title;
+          return `
+          <div style="text-align: left; width: 100px;">
+            <strong>${measure}</strong><br>
+            <strong>Min:</strong> <span style="float: right;">${value[0].toFixed(
+              3
+            )}</span><br>
+            <strong>Q1:</strong> <span style="float: right;">${value[1].toFixed(
+              3
+            )}</span><br>
+            <strong>Median:</strong> <span style="float: right;">${value[2].toFixed(
+              3
+            )}</span><br>
+            <strong>Q3:</strong> <span style="float: right;">${value[3].toFixed(
+              3
+            )}</span><br>
+            <strong>Max:</strong> <span style="float: right;">${value[4].toFixed(
+              3
+            )}</span>
+          </div>`;
+        },
       },
       xAxis: {
         name: "",
@@ -202,7 +250,7 @@ export const Boxplot = ({ selectedDimension, selectedDimensionRow, data }) => {
     return () => {
       chartInstance.dispose();
     };
-  }, []);
+  }, [selectedDimensionRow]);
 
   return <div ref={chartRef} style={{ height: "100%", width: "100%" }} />;
 };

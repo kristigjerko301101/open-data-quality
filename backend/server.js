@@ -144,7 +144,7 @@ FROM
 ORDER BY AV.MEASURE ASC;`
     );
 
-    const distribution_data = await pool.query(
+    const measure_distributions = await pool.query(
       `SELECT ROUND(ACCI3, 3) AS SCORE, 'acci3' AS MEASURE FROM OPENDATA.QUALITY Q UNION ALL
 SELECT ROUND(ACCI4, 3) AS SCORE, 'acci4' AS MEASURE FROM OPENDATA.QUALITY Q UNION ALL
 SELECT ROUND(AVAD1, 3) AS SCORE, 'avad1' AS MEASURE FROM OPENDATA.QUALITY Q UNION ALL
@@ -162,7 +162,7 @@ SELECT ROUND(UNDI1, 3) AS SCORE, 'undi1' AS MEASURE FROM OPENDATA.QUALITY Q`
       daily_registered: daily_registered.rows,
       daily_processed: daily_processed.rows,
       measure_averages: measure_averages.rows,
-      distribution_data: distribution_data.rows,
+      measure_distributions: measure_distributions.rows,
     };
     res.json(result);
   } catch (error) {

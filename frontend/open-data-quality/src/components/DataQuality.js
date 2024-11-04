@@ -11,6 +11,7 @@ const DataQuality = ({
   dimensionData,
   detailData,
   detailColumnDefs,
+  avgData,
 }) => {
   const [selectedDimensionRow, setSelectedDimensionRow] = useState(null);
   const [filteredDetailData, setFilteredDetailData] = useState([]);
@@ -62,19 +63,21 @@ const DataQuality = ({
             position: "relative",
           }}
         >
-          {selectedChart === "histogram" ? (
+          {selectedChart === "histogram" && (
             <Histogram
               selectedDimension={selectedDimension}
               selectedDimensionRow={selectedDimensionRow}
+              avgData={avgData}
             />
-          ) : (
+          )}
+          {selectedChart === "boxplot" && (
             <Boxplot
               selectedDimension={selectedDimension}
               selectedDimensionRow={selectedDimensionRow}
-              data={detailData || []}
+              data={detailData}
+              avgData={avgData}
             />
           )}
-
           <div
             style={{
               position: "absolute",

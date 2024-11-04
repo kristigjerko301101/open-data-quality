@@ -15,7 +15,7 @@ const StatCard = ({ title, stat }) => {
 };
 
 const StackedLines = ({ title, data }) => {
-  // Sort the data array by the refdate_orig field in ascending order
+  // sort the data array by the refdate_orig field in ascending order
   const sortedData = [...data].sort(
     (a, b) => new Date(a.refdate_orig) - new Date(b.refdate_orig)
   );
@@ -25,18 +25,19 @@ const StackedLines = ({ title, data }) => {
     Object.keys(sortedData[0]).filter(
       (i) => i !== "refdate" && i !== "refdate_orig"
     );
+
   const xAxisData = sortedData.map((item) => item.refdate);
 
-  // Initialize an object to hold the values for each key
+  // initialize an object to hold the values for each key
   const seriesMap = {};
-  // Iterate through each object in the sorted array
+  // iterate through each object in the sorted array
   sortedData.forEach((obj) => {
     for (const key of legendData) {
       if (!seriesMap[key]) {
-        // If the key doesn't exist in the seriesMap, create it
+        // if the key doesn't exist in the seriesMap, create it
         seriesMap[key] = { name: key, type: "line", data: [] };
       }
-      // Push the value into the corresponding array
+      // push the value into the corresponding array
       seriesMap[key].data.push(obj[key]);
     }
   });
@@ -68,18 +69,6 @@ const StackedLines = ({ title, data }) => {
       bottom: "-1%",
       data: legendData,
     },
-    grid: {
-      top: "15%",
-      left: "3%",
-      right: "5%",
-      bottom: "10%",
-      containLabel: true,
-    },
-    /*toolbox: {
-      feature: {
-        saveAsImage: {}
-      }
-    },*/
     xAxis: {
       type: "category",
       boundaryGap: false,
@@ -89,6 +78,13 @@ const StackedLines = ({ title, data }) => {
       type: "value",
     },
     series: seriesData,
+    grid: {
+      top: "15%",
+      left: "3%",
+      right: "5%",
+      bottom: "10%",
+      containLabel: true,
+    },
   });
 
   return (
@@ -99,11 +95,9 @@ const StackedLines = ({ title, data }) => {
   );
 };
 
-const ScoreBars = ({ title, data }) => {
-  const headerRow = ["measure", "title", "descr", "score", "amount"];
-  const measuresObject = data;
-  const sourceData = measuresObject.map((obj) => Object.values(obj));
-  sourceData.unshift(headerRow);
+const Histogram = ({ title, data }) => {
+  const xAxisData = data.map((i) => i.measure);
+  const seriesData = data.map((i) => i.score);
 
   const getOption = () => ({
     title: {
@@ -116,56 +110,44 @@ const ScoreBars = ({ title, data }) => {
         color: "#333",
       },
     },
-    grid: {
-      containLabel: true,
-      left: "2%", // Reduce left space
-      right: "4%", // Reduce right space
-      top: "10%", // Adjust top space if needed
-      bottom: "15%", // Adjust bottom space if needed
-    },
     tooltip: {
-      trigger: "item", // Trigger on the item (bar)
+      trigger: "axis",
       formatter: function (params) {
-        const measure = params.data[1]; // title
-        const descr = params.data[2]; // descr
-        const score = params.data[3]; // score
+        const { name, value } = params[0];
+        const currentData = data.find((i) => i.measure === name);
+
+        const measure = currentData && currentData.title;
+        const descr = currentData && currentData.descr;
+        const score = currentData && currentData.score;
         return `
           <strong>${measure}</strong><br/>
           <strong>Score:</strong> ${score}<br/>
           <strong>Descr:</strong> ${descr.replace("#", "<br/>")}
         `;
       },
-      axisPointer: {
-        type: "shadow", // Display a shadow pointer
-      },
     },
-    dataset: {
-      source: sourceData,
+    xAxis: {
+      data: xAxisData,
     },
-    xAxis: { name: "" },
-    yAxis: { type: "category", inverse: "true" },
-    series: [
-      {
-        type: "bar",
-        encode: {
-          x: "amount",
-          y: "measure",
-        },
-      },
-    ],
-    visualMap: {
-      orient: "horizontal",
-      left: "center",
+    yAxis: {
+      type: "value",
       min: 0,
       max: 1,
-      text: ["1", "0"],
-      dimension: 3, //score
-      inRange: {
-        color: ["#FD665F", "#FFCE34", "#65B581"],
+    },
+    series: [
+      {
+        name: "Measures",
+        type: "bar",
+        data: seriesData,
+        itemStyle: { color: "#b3daff", borderColor: "#003468" },
       },
-      formatter: (value) => {
-        return value.toFixed(3);
-      },
+    ],
+    grid: {
+      left: "2%",
+      right: "2%",
+      top: "20%",
+      bottom: "0%",
+      containLabel: true,
     },
   });
 
@@ -177,7 +159,7 @@ const ScoreBars = ({ title, data }) => {
   );
 };
 
-const BoxplotChart = ({ data }) => {
+const Boxplot = ({ title, data, avgData }) => {
   const rawData = data.map((obj) => Object.values(obj));
   rawData.unshift(["Score", "Measure"]);
 
@@ -222,7 +204,7 @@ const BoxplotChart = ({ data }) => {
         },
       ],
       title: {
-        text: "quality measures - distribution",
+        text: title,
         left: "center",
         top: "top",
         textStyle: {
@@ -234,33 +216,61 @@ const BoxplotChart = ({ data }) => {
       tooltip: {
         trigger: "axis",
         confine: true,
+        formatter: function (params) {
+          const { name, value } = params[0];
+          const currentData = avgData.find((i) => i.measure === name);
+
+          const measure = currentData && currentData.title;
+          return `
+          <div style="text-align: left; width: 100px;">
+            <strong>${measure}</strong><br>
+            <strong>Min:</strong> <span style="float: right;">${value[0].toFixed(
+              3
+            )}</span><br>
+            <strong>Q1:</strong> <span style="float: right;">${value[1].toFixed(
+              3
+            )}</span><br>
+            <strong>Median:</strong> <span style="float: right;">${value[2].toFixed(
+              3
+            )}</span><br>
+            <strong>Q3:</strong> <span style="float: right;">${value[3].toFixed(
+              3
+            )}</span><br>
+            <strong>Max:</strong> <span style="float: right;">${value[4].toFixed(
+              3
+            )}</span>
+          </div>`;
+        },
       },
       xAxis: {
         name: "",
+        type: "category",
+        inverse: "true",
       },
       yAxis: {
-        type: "category",
-      },
-      grid: {
-        bottom: "15%",
-        top: "10%",
+        type: "value",
       },
       series: [
         {
           name: "boxplot",
           type: "boxplot",
           datasetId: "measures_aggregate",
-          itemStyle: {
-            color: "#b3daff", //"#b8c5f2",
-          },
+          itemStyle: { color: "#b3daff", borderColor: "#003468" },
           encode: {
-            x: ["min", "Q1", "median", "Q3", "max"],
-            y: "Measure",
+            y: ["min", "Q1", "median", "Q3", "max"],
+            x: "Measure",
             itemName: ["Measure"],
             tooltip: ["min", "Q1", "median", "Q3", "max"],
           },
         },
       ],
+      grid: {
+        left: "2%",
+        right: "2%",
+        top: "20%",
+        bottom: "0%",
+        containLabel: true,
+      },
     };
 
     chartInstance.setOption(option);
@@ -287,7 +297,6 @@ const Homepage = ({ homeData }) => {
             gap: "15px",
           }}
         >
-          {/* <StatCard title="placeholder" stat="x" /> */}
           <StatCard
             title="discovered datasets"
             stat={
@@ -368,15 +377,19 @@ const Homepage = ({ homeData }) => {
             width: "40vw",
           }}
         >
-          <BoxplotChart data={homeData.distribution_data || []} />
+          <Boxplot
+            title={"quality measures - distribution"}
+            data={homeData.measure_distributions || []}
+            avgData={homeData.measure_averages || []}
+          />
         </section>
         <section
           style={{
             width: "56vw",
           }}
         >
-          <ScoreBars
-            title={"quality measures - overall average"}
+          <Histogram
+            title={"quality measures - average"}
             data={homeData.measure_averages || []}
           />
         </section>

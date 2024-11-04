@@ -183,6 +183,7 @@ const App = () => {
           dimensionData={dimensionData}
           detailData={detailData}
           detailColumnDefs={detailColumnDefs}
+          avgData={homeData.measure_averages || []}
         />
       );
     } else if (selectedDimension === "home") {
