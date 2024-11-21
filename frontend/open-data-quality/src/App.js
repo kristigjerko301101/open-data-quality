@@ -61,8 +61,8 @@ const detailColumnDefsConfig = [
     width: 100,
   },
   {
-    headerName: "AvaD1",
-    field: "avad1",
+    headerName: "Avad2",
+    field: "avad2",
     sortable: true,
     filter: true,
     width: 100,

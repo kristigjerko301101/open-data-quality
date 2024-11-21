@@ -122,7 +122,7 @@ const Histogram = ({ title, data }) => {
         return `
           <strong>${measure}</strong><br/>
           <strong>Score:</strong> ${score}<br/>
-          <strong>Descr:</strong> ${descr.replace("#", "<br/>")}
+          <strong>Descr:</strong> ${descr.replaceAll("#", "<br/>")}
         `;
       },
     },

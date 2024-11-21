@@ -131,7 +131,7 @@ FROM
 	(
 		SELECT ROUND(AVG(ACCI3), 3) AS SCORE, 'acci3' AS MEASURE FROM OPENDATA.QUALITY Q UNION ALL
 		SELECT ROUND(AVG(ACCI4), 3) AS SCORE, 'acci4' AS MEASURE FROM OPENDATA.QUALITY Q UNION ALL
-		SELECT ROUND(AVG(AVAD1), 3) AS SCORE, 'avad1' AS MEASURE FROM OPENDATA.QUALITY Q UNION ALL
+		SELECT ROUND(AVG(AVAD2), 3) AS SCORE, 'avad2' AS MEASURE FROM OPENDATA.QUALITY Q UNION ALL
 		SELECT ROUND(AVG(COMI1), 3) AS SCORE, 'comi1' AS MEASURE FROM OPENDATA.QUALITY Q UNION ALL
 		SELECT ROUND(AVG(COMI5), 3) AS SCORE, 'comi5' AS MEASURE FROM OPENDATA.QUALITY Q UNION ALL
 		SELECT ROUND(AVG(CONI2), 3) AS SCORE, 'coni2' AS MEASURE FROM OPENDATA.QUALITY Q UNION ALL
@@ -147,7 +147,7 @@ ORDER BY AV.MEASURE ASC;`
     const measure_distributions = await pool.query(
       `SELECT ROUND(ACCI3, 3) AS SCORE, 'acci3' AS MEASURE FROM OPENDATA.QUALITY Q UNION ALL
 SELECT ROUND(ACCI4, 3) AS SCORE, 'acci4' AS MEASURE FROM OPENDATA.QUALITY Q UNION ALL
-SELECT ROUND(AVAD1, 3) AS SCORE, 'avad1' AS MEASURE FROM OPENDATA.QUALITY Q UNION ALL
+SELECT ROUND(AVAD2, 3) AS SCORE, 'avad2' AS MEASURE FROM OPENDATA.QUALITY Q UNION ALL
 SELECT ROUND(COMI1, 3) AS SCORE, 'comi1' AS MEASURE FROM OPENDATA.QUALITY Q UNION ALL
 SELECT ROUND(COMI5, 3) AS SCORE, 'comi5' AS MEASURE FROM OPENDATA.QUALITY Q UNION ALL
 SELECT ROUND(CONI2, 3) AS SCORE, 'coni2' AS MEASURE FROM OPENDATA.QUALITY Q UNION ALL
@@ -183,7 +183,7 @@ app.get("/api/group", async (req, res) => {
 ,r.description
 ,ROUND(acci3,3) AS acci3
 ,ROUND(acci4,3) AS acci4
-,ROUND(avad1,3) AS avad1
+,ROUND(avad2,3) AS avad2
 ,ROUND(comi1,3) AS comi1
 ,ROUND(comi5,3) AS comi5
 ,ROUND(coni2,3) AS coni2
@@ -202,7 +202,7 @@ LEFT JOIN opendata.datasets_groups g ON d.id = g.dataset`
 ,COUNT(*) AS total
 ,ROUND(AVG(acci3),3) AS acci3
 ,ROUND(AVG(acci4),3) AS acci4
-,ROUND(AVG(avad1),3) AS avad1
+,ROUND(AVG(avad2),3) AS avad2
 ,ROUND(AVG(comi1),3) AS comi1
 ,ROUND(AVG(comi5),3) AS comi5
 ,ROUND(AVG(coni2),3) AS coni2
@@ -237,7 +237,7 @@ app.get("/api/tag", async (req, res) => {
 ,r.description
 ,ROUND(acci3,3) AS acci3
 ,ROUND(acci4,3) AS acci4
-,ROUND(avad1,3) AS avad1
+,ROUND(avad2,3) AS avad2
 ,ROUND(comi1,3) AS comi1
 ,ROUND(comi5,3) AS comi5
 ,ROUND(coni2,3) AS coni2
@@ -256,7 +256,7 @@ LEFT JOIN opendata.datasets_tags g ON d.id = g.tag`
 ,COUNT(*) AS total
 ,ROUND(AVG(acci3),3) AS acci3
 ,ROUND(AVG(acci4),3) AS acci4
-,ROUND(AVG(avad1),3) AS avad1
+,ROUND(AVG(avad2),3) AS avad2
 ,ROUND(AVG(comi1),3) AS comi1
 ,ROUND(AVG(comi5),3) AS comi5
 ,ROUND(AVG(coni2),3) AS coni2
@@ -290,7 +290,7 @@ app.get("/api/organization", async (req, res) => {
 ,r.description
 ,ROUND(acci3,3) AS acci3
 ,ROUND(acci4,3) AS acci4
-,ROUND(avad1,3) AS avad1
+,ROUND(avad2,3) AS avad2
 ,ROUND(comi1,3) AS comi1
 ,ROUND(comi5,3) AS comi5
 ,ROUND(coni2,3) AS coni2
@@ -308,7 +308,7 @@ INNER JOIN opendata.datasets d ON r.dataset = d.id`
 ,COUNT(*) AS total
 ,ROUND(AVG(acci3),3) AS acci3
 ,ROUND(AVG(acci4),3) AS acci4
-,ROUND(AVG(avad1),3) AS avad1
+,ROUND(AVG(avad2),3) AS avad2
 ,ROUND(AVG(comi1),3) AS comi1
 ,ROUND(AVG(comi5),3) AS comi5
 ,ROUND(AVG(coni2),3) AS coni2
@@ -341,7 +341,7 @@ app.get("/api/dataset", async (req, res) => {
 ,r.description
 ,ROUND(acci3,3) AS acci3
 ,ROUND(acci4,3) AS acci4
-,ROUND(avad1,3) AS avad1
+,ROUND(avad2,3) AS avad2
 ,ROUND(comi1,3) AS comi1
 ,ROUND(comi5,3) AS comi5
 ,ROUND(coni2,3) AS coni2
@@ -359,7 +359,7 @@ INNER JOIN opendata.datasets d ON r.dataset = d.id`
 ,COUNT(*) AS total
 ,ROUND(AVG(acci3),3) AS acci3
 ,ROUND(AVG(acci4),3) AS acci4
-,ROUND(AVG(avad1),3) AS avad1
+,ROUND(AVG(avad2),3) AS avad2
 ,ROUND(AVG(comi1),3) AS comi1
 ,ROUND(AVG(comi5),3) AS comi5
 ,ROUND(AVG(coni2),3) AS coni2
@@ -392,7 +392,7 @@ app.get("/api/resource", async (req, res) => {
 ,r.description
 ,ROUND(acci3,3) AS acci3
 ,ROUND(acci4,3) AS acci4
-,ROUND(avad1,3) AS avad1
+,ROUND(avad2,3) AS avad2
 ,ROUND(comi1,3) AS comi1
 ,ROUND(comi5,3) AS comi5
 ,ROUND(coni2,3) AS coni2

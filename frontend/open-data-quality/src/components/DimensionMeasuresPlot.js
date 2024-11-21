@@ -21,7 +21,7 @@ export const Histogram = ({
           comi5: "0",
           coni2: "0",
           coni3: "0",
-          avad1: "0",
+          avad2: "0",
         };
 
     const option = {
@@ -50,7 +50,7 @@ export const Histogram = ({
           return `
             <strong>${measure}</strong><br/>
             <strong>Score:</strong> ${score}<br/>
-            <strong>Descr:</strong> ${descr.replace("#", "<br/>")}
+            <strong>Descr:</strong> ${descr.replaceAll("#", "<br/>")}
           `;
         },
       },
@@ -111,12 +111,12 @@ export const Boxplot = ({
           comi5: "0",
           coni2: "0",
           coni3: "0",
-          avad1: "0",
+          avad2: "0",
         };
     const measureKeys = [
       "acci3",
       "acci4",
-      "avad1",
+      "avad2",
       "comi1",
       "comi5",
       "coni2",

@@ -123,7 +123,7 @@ def accuracy_consistency_understandability(df, n_row, n_col, n_line):
 
 def availability_completeness(df, n_row, n_col, num_available, num_accesses):
 
-    AvaD1 = round(num_available / num_accesses, n_decimals) if num_accesses != 0 else 0
+    Avad2 = round(num_available / num_accesses, n_decimals) if num_accesses != 0 else 0
 
     n_notna_cells = df.notna().sum().sum()
     ComI1 = (
@@ -133,7 +133,7 @@ def availability_completeness(df, n_row, n_col, num_available, num_accesses):
     n_na_rows = df.isnull().all(1).sum()
     ComI5 = round(1 - n_na_rows / n_row, n_decimals) if n_row * n_col != 0 else 0
 
-    return AvaD1, ComI1, ComI5
+    return Avad2, ComI1, ComI5
 
 
 #################################### auxiliary functions ####################################

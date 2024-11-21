@@ -63,7 +63,7 @@ def quality(db, cursor, execid, duration):
                     AccI3, AccI4, ConI2, ConI3, ConI4, ConI5, UndI1 = (
                         accuracy_consistency_understandability(df, nr, nc, nl)
                     )
-                    AvaD1, ComI1, ComI5 = availability_completeness(
+                    Avad2, ComI1, ComI5 = availability_completeness(
                         df, nr, nc, num_available, num_accesses
                     )
 
@@ -73,7 +73,7 @@ def quality(db, cursor, execid, duration):
                         id,
                         AccI3,
                         AccI4,
-                        AvaD1,
+                        Avad2,
                         ComI1,
                         ComI5,
                         ConI2,

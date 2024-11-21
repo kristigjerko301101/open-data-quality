@@ -81,7 +81,7 @@ def db_update_quality_results(
     id,
     AccI3,
     AccI4,
-    AvaD1,
+    Avad2,
     ComI1,
     ComI5,
     ConI2,
@@ -93,7 +93,7 @@ def db_update_quality_results(
 ):
     try:
         query = """
-        INSERT INTO opendata.quality(id, AccI3, AccI4, AvaD1, ComI1, ComI5, ConI2, ConI3, ConI4, ConI5, UndI1, tscreation, execid)
+        INSERT INTO opendata.quality(id, AccI3, AccI4, Avad2, ComI1, ComI5, ConI2, ConI3, ConI4, ConI5, UndI1, tscreation, execid)
 	    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, now(), %s);
 
         UPDATE opendata.resources
@@ -106,7 +106,7 @@ def db_update_quality_results(
                 id,
                 AccI3,
                 AccI4,
-                AvaD1,
+                Avad2,
                 ComI1,
                 ComI5,
                 ConI2,

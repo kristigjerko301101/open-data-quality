@@ -49,8 +49,8 @@ const DimensionMeasuresGrid = ({
       width: 80,
     },
     {
-      headerName: "AvaD1",
-      field: "avad1",
+      headerName: "Avad2",
+      field: "avad2",
       sortable: true,
       filter: false,
       width: 80,
