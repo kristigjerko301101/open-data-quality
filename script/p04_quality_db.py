@@ -93,6 +93,9 @@ def db_update_quality_results(
 ):
     try:
         query = """
+        DELETE FROM opendata.quality
+        WHERE id = %s;
+
         INSERT INTO opendata.quality(id, AccI3, AccI4, Avad2, ComI1, ComI5, ConI2, ConI3, ConI4, ConI5, UndI1, tscreation, execid)
 	    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, now(), %s);
 
@@ -103,6 +106,7 @@ def db_update_quality_results(
         cursor.execute(
             query,
             (
+                id,
                 id,
                 AccI3,
                 AccI4,
